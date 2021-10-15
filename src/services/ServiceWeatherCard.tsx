@@ -12,7 +12,12 @@ class ServiceWeatherCard {
 
   private API_KEY = process.env.REACT_APP_API_KEY;
 
+  // How much time the cache will be available to be used
   private CACHE_THRESHOLD_TIME = process.env.REACT_APP_CACHE_THRESHOLD_TIME || 0;
+
+  // It'll only update using the fetched data if the fetched data weather temperature
+  // has +- CACHE_THRESHOLD_TEMP of difference from the cached weather data
+  private CACHE_THRESHOLD_TEMP = 1;
 
   private CURRENT_TIME = (+new Date())
 
@@ -33,8 +38,10 @@ class ServiceWeatherCard {
     this.cache = JSON.parse(localStorage.getItem(this.localStorageItemName) || '{}');
   }
 
+  private cacheExists() : boolean { return Object.keys(this.cache).length > 0; }
+
   private hasCacheExpired() : boolean {
-    return Object.keys(this.cache).length > 0
+    return this.cacheExists()
       ? ((this.CURRENT_TIME - this.cache.time) / 1000) >= this.CACHE_THRESHOLD_TIME
       : true;
   }
@@ -62,10 +69,12 @@ class ServiceWeatherCard {
           return response.json();
         })
         .then((data: IWeatherData) => {
-          const diffCurrentTempAndCachedTemp = Math.abs(data.main.temp - this.cache.data.main.temp) || 0;
+          const diffCurrentTempAndCachedTemp = this.cacheExists()
+            ? Math.abs(data.main.temp - this.cache.data.main.temp) || 0
+            : this.CACHE_THRESHOLD_TEMP;
 
           // eslint-disable-next-line no-unused-expressions
-          (diffCurrentTempAndCachedTemp >= 1)
+          diffCurrentTempAndCachedTemp >= this.CACHE_THRESHOLD_TEMP
             ? this.setWeatherData(data)
             : this.setWeatherData(this.cache.data);
 
