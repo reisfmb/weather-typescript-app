@@ -12,7 +12,7 @@
 
 :white_check_mark: The widget/page should update periodically 
 
-**Caches data from the API in localStorage for 1 hour**.
+**Caches data from the API in localStorage for 1 minute and updates if there is a change in the temperature of +-1 Kelvin**.
 
 
 :white_check_mark: Html design skills. How the tags are used and what tags are used. CSS styling (or usage of ready UI bootstrap frameworks). Experience with Typescript. Clean code. Testability.
@@ -59,4 +59,6 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 # Preview
 
-https://user-images.githubusercontent.com/67838246/137478642-2a2b28aa-af8b-46bb-ad8c-4ea9142b20e2.mov
+https://user-images.githubusercontent.com/67838246/137556428-b3cc0196-6d28-406c-81c6-7fb82446243e.mp4
+
+
