@@ -32,13 +32,13 @@ const WeatherTemperature:React.FC<IMain> = ({ temp, temp_min, temp_max }: IMain)
 
       <div className="weather-card__temperature__temperatures">
         <span>
-          { `${convertTemperatureToScale(scale, temp_min)} ${scale.toUpperCase()}`}
+          { `min: ${convertTemperatureToScale(scale, temp_min)} ${scale.toUpperCase()}`}
         </span>
         <span>
           { `${convertTemperatureToScale(scale, temp)} ${scale.toUpperCase()}` }
         </span>
         <span>
-          { `${convertTemperatureToScale(scale, temp_max)} ${scale.toUpperCase()}`}
+          { `max: ${convertTemperatureToScale(scale, temp_max)} ${scale.toUpperCase()}`}
         </span>
       </div>
 

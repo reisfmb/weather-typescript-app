@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ICoordinates } from '../../../types/types';
 
-const render = ({ lat, lon } : ICoordinates) : JSX.Element => {
+const GoogleMapsIframe:React.FC<ICoordinates> = ({ lat, lon } : ICoordinates) : JSX.Element => {
   const src = `https://maps.google.com/maps?q=${lat}, ${lon}&z=4&output=embed`;
 
   return (
@@ -17,11 +17,5 @@ const render = ({ lat, lon } : ICoordinates) : JSX.Element => {
     />
   );
 };
-
-const GoogleMapsIframe:React.FC<ICoordinates> = (props: ICoordinates) : JSX.Element => (
-  <>
-    { render(props) }
-  </>
-);
 
 export default GoogleMapsIframe;

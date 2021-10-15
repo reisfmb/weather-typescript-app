@@ -16,6 +16,8 @@ interface IProps {
 const WeatherCard = ({ cityName }: IProps) : JSX.Element => {
   const [weatherData, setWeatherData] = useState({} as IWeatherData);
   const serviceWeatherCard = new ServiceWeatherCard(cityName, setWeatherData);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { serviceWeatherCard.execute(); }, [cityName]);
 
   if (Object.keys(weatherData).length === 0) {

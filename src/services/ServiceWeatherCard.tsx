@@ -16,10 +16,10 @@ class ServiceWeatherCard {
 
   private CURRENT_TIME = (+new Date())
 
-  ///
-
   private city : string
 
+  // This is the mutator of the weatherData state that is going to be used
+  // in the WeatherCard component
   private setWeatherData: React.Dispatch<React.SetStateAction<IWeatherData>>
 
   private localStorageItemName : string
@@ -54,24 +54,28 @@ class ServiceWeatherCard {
   }
 
   public execute() : void {
-    const cacheExpired = this.hasCacheExpired();
-
-    if (!cacheExpired) {
-      this.setWeatherData(this.cache.data);
-    } else {
+    if (this.hasCacheExpired()) { // Cache has expired
       fetch(`${this.API_URL}?q=${this.city}&APPID=${this.API_KEY}`)
-        .then((response) => {
+        .then((response: Response) => {
           if (!response.ok) { throw Error(response.statusText); }
 
           return response.json();
         })
-        .then((data) => {
-          this.setWeatherData(data);
-          this.updateCache({ time: (+new Date()), data });
+        .then((data: IWeatherData) => {
+          const diffCurrentTempAndCachedTemp = Math.abs(data.main.temp - this.cache.data.main.temp) || 0;
+
+          // eslint-disable-next-line no-unused-expressions
+          (diffCurrentTempAndCachedTemp >= 1)
+            ? this.setWeatherData(data)
+            : this.setWeatherData(this.cache.data);
+
+          this.updateCache({ time: this.CURRENT_TIME, data });
         })
-        .catch((error) => {
+        .catch((error: string) => {
           this.showErrorDialog(error);
         });
+    } else { // Cache hasn't expired
+      this.setWeatherData(this.cache.data);
     }
   }
 }
