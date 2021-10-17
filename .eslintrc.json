@@ -22,6 +22,7 @@
         "react-hooks"
     ],
     "rules": {
+        "linebreak-style": 0,
         "react/no-array-index-key": "off",
         "react/jsx-props-no-spreading": "off",
         "no-use-before-define": "off",
