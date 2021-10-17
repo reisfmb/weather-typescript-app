@@ -7,17 +7,17 @@ const WeatherDetails:React.FC<IWeather[]> = (weathers: IWeather[]) : JSX.Element
 
   const getIconUrl = (icon:string): string => `http://openweathermap.org/img/w/${icon}.png`;
 
+  const weatherIcons = weathersArray.map((weather) => weather.icon);
+  const weatherTitles = weathersArray.map((weather) => weather.main);
+  const weatherDescriptions = weathersArray.map((weather) => weather.description);
+
   return (
     <div data-testid="weather-details-component" className="weather-card__details__info">
-      {
-          weathersArray.map((weather, index) => (
-            <div key={`details-${index}`}>
-              <img src={getIconUrl(weather.icon)} alt={weather.icon} />
-              <h3>{weather.main}</h3>
-              <span>{weather.description}</span>
-            </div>
-          ))
-      }
+      <div className="icons">
+        { weatherIcons.map((icon) => <img key={icon} src={getIconUrl(icon)} alt={icon} />) }
+      </div>
+      <h3>{ weatherTitles.join(', ') }</h3>
+      <span>{ weatherDescriptions.join(', ') }</span>
     </div>
   );
 };
