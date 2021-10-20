@@ -21,10 +21,6 @@ test('Should display an image, main and description for each weather data in the
 
   expect(screen.getByAltText('a')).toHaveAttribute('src', 'http://openweathermap.org/img/w/a.png');
   expect(screen.getByAltText('b')).toHaveAttribute('src', 'http://openweathermap.org/img/w/b.png');
-
-  expect(screen.getByText('Sunny')).toBeInTheDocument();
-  expect(screen.getByText('Rainy')).toBeInTheDocument();
-
-  expect(screen.getByText('Today is sunny.')).toBeInTheDocument();
-  expect(screen.getByText('Today is rainy.')).toBeInTheDocument();
+  expect(screen.getByText('Sunny, Rainy')).toBeInTheDocument();
+  expect(screen.getByText('Today is sunny., Today is rainy.')).toBeInTheDocument();
 });
