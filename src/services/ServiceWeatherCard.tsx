@@ -1,94 +1,107 @@
 import Swal from 'sweetalert2';
 
-import { IWeatherData } from '../types/types';
-
-interface ICache {
-  time: number,
-  data: IWeatherData
-}
+import {
+  IWeatherData,
+  IServiceConfig, IServiceCache, IServiceCacheData,
+} from '../types/types';
 
 class ServiceWeatherCard {
-  private API_URL = process.env.REACT_APP_API_URL;
-
-  private API_KEY = process.env.REACT_APP_API_KEY;
-
-  // How much time the cache will be available to be used
-  private CACHE_THRESHOLD_TIME = process.env.REACT_APP_CACHE_THRESHOLD_TIME || 0;
-
-  // It'll only update using the fetched data if the fetched data weather temperature
-  // has +- CACHE_THRESHOLD_TEMP of difference from the cached weather data
-  private CACHE_THRESHOLD_TEMP = 1;
-
-  private CURRENT_TIME = (+new Date())
-
-  private city : string
-
-  // This is the mutator of the weatherData state that is going to be used
-  // in the WeatherCard component
-  private setWeatherData: React.Dispatch<React.SetStateAction<IWeatherData>>
-
-  private localStorageItemName : string
-
-  private cache: ICache
-
-  constructor(city: string, setWeatherData: React.Dispatch<React.SetStateAction<IWeatherData>>) {
-    this.city = city;
-    this.localStorageItemName = `wta-${city}`; // wta stands for [W]eather [T]ypescript [A]pp
-    this.setWeatherData = setWeatherData;
-    this.cache = JSON.parse(localStorage.getItem(this.localStorageItemName) || '{}');
+  private CONFIG: IServiceConfig = {
+    API_URL: process.env.REACT_APP_API_URL || '',
+    API_KEY: process.env.REACT_APP_API_KEY || '',
   }
 
-  private cacheExists() : boolean { return Object.keys(this.cache).length > 0; }
+  private CACHE: IServiceCache = {
+    IDENTIFIER: null,
+    DATA: {},
+    // Cache's lifetime in seconds
+    LIFETIME: parseInt(process.env.REACT_APP_CACHE_LIFETIME_IN_SECONDS || '0'),
+    // Trigger: difference between cache's temperature and current data temperature
+    THRESHOLD_TEMP: parseInt(process.env.REACT_APP_CACHE_THRESHOLD_TIME || '1'),
+  }
 
+  // Function that mutates the weatherData in the WeatherCard component
+  private setWeatherData: React.Dispatch<React.SetStateAction<IWeatherData>>
+
+  private city: string
+
+  private currentTime: number = (+new Date())
+
+  constructor(city: string, setWeatherData: React.Dispatch<React.SetStateAction<IWeatherData>>) {
+    const citySlug = city.split(' ').map((c) => c.toLowerCase()).join('-');
+
+    this.CACHE.IDENTIFIER = `wta-${citySlug}`; // wta stands for [W]eather [T]ypescript [A]pp
+    this.CACHE.DATA = JSON.parse(localStorage.getItem(this.CACHE.IDENTIFIER) || '{}');
+
+    this.setWeatherData = setWeatherData;
+    this.city = city;
+  }
+
+  /**
+   * Check if the cache exists.
+   */
+  private cacheExists() : boolean {
+    return Object.keys(this.CACHE.DATA).length > 0;
+  }
+
+  /**
+   * Check if the cache has expired based on the cache threshold time.
+   */
   private hasCacheExpired() : boolean {
     return this.cacheExists()
-      ? ((this.CURRENT_TIME - this.cache.time) / 1000) >= this.CACHE_THRESHOLD_TIME
+      ? ((this.currentTime - this.CACHE.DATA.time) / 1000) >= this.CACHE.LIFETIME
       : true;
   }
 
-  private updateCache(cache: ICache): void {
-    localStorage.setItem(this.localStorageItemName, JSON.stringify(cache));
+  /**
+   * Updates the cache data.
+   */
+  private updateCache(cacheData: IServiceCacheData): void {
+    if (this.CACHE.IDENTIFIER) { localStorage.setItem(this.CACHE.IDENTIFIER, JSON.stringify(cacheData)); }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private showErrorDialog(errorMessage: string): void {
-    Swal.fire({
-      title: 'Oops',
-      text: errorMessage,
-      icon: 'error',
-      showConfirmButton: false,
-    });
+  /**
+   * Returns the abs value of the difference between the cached temperature and the current temperature.
+   */
+  private diffCachedTempAndCurrentTemp(currentTemp:number): number {
+    return Math.abs(currentTemp - this.CACHE.DATA.data.main.temp);
   }
 
-  public execute() : void {
-    if (this.hasCacheExpired()) { // Cache has expired
-      fetch(`${this.API_URL}?q=${this.city}&APPID=${this.API_KEY}`)
-        .then((response: Response) => {
-          if (!response.ok) { throw Error(response.statusText); }
-
-          return response.json();
-        })
-        .then((data: IWeatherData) => {
-          const diffCurrentTempAndCachedTemp = this.cacheExists()
-            ? Math.abs(data.main.temp - this.cache.data.main.temp) || 0
-            : this.CACHE_THRESHOLD_TEMP;
-
-          // eslint-disable-next-line no-unused-expressions
-          diffCurrentTempAndCachedTemp >= this.CACHE_THRESHOLD_TEMP
-            ? this.setWeatherData(data)
-            : this.setWeatherData(this.cache.data);
-
-          this.updateCache({ time: this.CURRENT_TIME, data });
-        })
-        .catch((error: string) => {
-          this.showErrorDialog(error);
-        });
-    } else { // Cache hasn't expired
-      this.setWeatherData(this.cache.data);
+  /**
+   * Gets the weather data from API or from the Cache.
+   *
+   * Cache is updated following its lifetime value.
+   *
+   * API data is only used if its abs diff from the cached temperature is >= then the cache threshold temp.
+   */
+  public execute(): void {
+    if (this.cacheExists() && !this.hasCacheExpired()) {
+      this.setWeatherData(this.CACHE.DATA.data);
+      return;
     }
+
+    const endpoint = `${this.CONFIG.API_URL}?q=${this.city}&APPID=${this.CONFIG.API_KEY}`;
+
+    fetch(endpoint)
+      .then((response: Response) => {
+        if (!response.ok) { throw Error(response.statusText); }
+        return response.json();
+      })
+      .then((data: IWeatherData) => {
+        const cacheData = { time: this.currentTime, data };
+
+        !this.cacheExists() && (this.CACHE.DATA = cacheData);
+
+        this.diffCachedTempAndCurrentTemp(data.main.temp) >= this.CACHE.THRESHOLD_TEMP
+          ? this.setWeatherData(data)
+          : this.setWeatherData(this.CACHE.DATA.data);
+
+        this.updateCache(cacheData);
+      })
+      .catch((error: string) => {
+        Swal.fire({ text: error, icon: 'error', showConfirmButton: false });
+      });
   }
 }
 
-export {
-  ServiceWeatherCard,
-};
+export { ServiceWeatherCard };

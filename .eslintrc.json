@@ -22,6 +22,9 @@
         "react-hooks"
     ],
     "rules": {
+        "class-methods-use-this": "off",
+        "no-unused-expressions": "off",
+        "radix": "off",
         "linebreak-style": 0,
         "react/no-array-index-key": "off",
         "react/jsx-props-no-spreading": "off",

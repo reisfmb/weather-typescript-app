@@ -27,3 +27,22 @@ export interface IWeatherData {
   weather: IWeather[];
   wind: IWind;
 }
+
+///
+
+export interface IServiceConfig {
+  API_URL: string,
+  API_KEY: string,
+}
+
+export interface IServiceCacheData {
+  time: number,
+  data: IWeatherData
+}
+
+export interface IServiceCache {
+  IDENTIFIER: null | string,
+  LIFETIME: number,
+  THRESHOLD_TEMP: number,
+  DATA: IServiceCacheData | Record<string, never>
+}
