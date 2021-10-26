@@ -43,6 +43,5 @@ export interface IServiceCacheData {
 export interface IServiceCache {
   IDENTIFIER: null | string,
   LIFETIME: number,
-  THRESHOLD_TEMP: number,
   DATA: IServiceCacheData | Record<string, never>
 }

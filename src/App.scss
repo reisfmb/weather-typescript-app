@@ -2,6 +2,7 @@ $gray-color: #f1f1f1;
 $dark-gray-color: lightgray;
 $light-black-color: rgb(95, 95, 95);
 $shadow-color: rgba(0,0,0,.25);
+$red-color: #dc3545;
 
 html, body {
     height: 100%
@@ -137,11 +138,28 @@ body{
         margin-top: 25px;
     }
 
+    &--error{
+        p{
+            border-radius: 5px;
+            padding: 10px;
+            background-color: $red-color;
+            color: white;
+            text-transform: uppercase;
+            text-align:center;
+        }
+    }
     &--loading{
         p{
             text-align:center;
         }
     }
+}
+
+.weather-card--error{
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .weather-card--loading{

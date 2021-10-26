@@ -15,11 +15,30 @@ interface IProps {
 
 const WeatherCard = ({ cityName }: IProps) : JSX.Element => {
   const [weatherData, setWeatherData] = useState({} as IWeatherData);
-  const serviceWeatherCard = new ServiceWeatherCard(cityName, setWeatherData);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { serviceWeatherCard.execute(); }, [cityName]);
+  const serviceWeatherCard = new ServiceWeatherCard(cityName, setWeatherData, setErrorMessage);
 
+  const serviceExecutionInterval = parseInt(
+    process.env.REACT_APP_SERVICE_EXECUTION_INTERVAL_IN_SECONDS || '60',
+  ) * 1000;
+
+  useEffect(() => {
+    serviceWeatherCard.execute(); // First execution
+    setInterval(() => { serviceWeatherCard.execute(); }, serviceExecutionInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Error
+  if (errorMessage) {
+    return (
+      <div className="weather-card weather-card--error">
+        <p data-testid="error-text">{ errorMessage }</p>
+      </div>
+    );
+  }
+
+  // Loading
   if (Object.keys(weatherData).length === 0) {
     return (
       <div className="weather-card weather-card--loading">
